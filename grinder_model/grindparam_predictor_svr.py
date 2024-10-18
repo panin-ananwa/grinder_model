@@ -147,6 +147,18 @@ def predict_volume(volume_model, volume_scaler, initial_wear, avg_rpm, avg_force
     predicted_volume = volume_model.predict(input_scaled)
     return predicted_volume[0]  # Return the predicted volume
 
+def predict_mrr(mrr_model, mrr_scaler, initial_wear, avg_rpm, avg_force):
+   
+    input_volume_data_dict = {
+        'avg_rpm': [avg_rpm],
+        'avg_force': [avg_force],
+        'initial_wear': [initial_wear]
+    }
+    input_df = pd.DataFrame(input_volume_data_dict)
+    input_scaled = mrr_scaler.transform(input_df)
+    input_scaled = pd.DataFrame(input_scaled, columns=input_df.columns)
+    predicted_mrr = mrr_model.predict(input_scaled)
+    return predicted_mrr[0]  # Return the predicted volume
 
 def main():
     #get grind model
@@ -154,26 +166,32 @@ def main():
     
     if use_fixed_model_path:
         # Specify the fixed model and scaler paths
-        fixed_grind_model_path = 'saved_models/grindparam_model_svr_V1.pkl'
-        fixed_grind_scaler_path = 'saved_models/grindparam_scaler_svr_V1.pkl'
+        fixed_grind_model_path = 'saved_models/grindparam_model_rf_V1.pkl'
+        fixed_grind_scaler_path = 'saved_models/grindparam_scaler_rf_V1.pkl'
         fixed_volume_model_path = 'saved_models/volume_model_svr_V1.pkl'
         fixed_volume_scaler_path = 'saved_models/volume_scaler_svr_V1.pkl'
+        fixed_mrr_model_path = 'saved_models/mrr_model_svr_V1.pkl'
+        fixed_mrr_scaler_path = 'saved_models/mrr_scaler_svr_V1.pkl'
         
         grind_model = load_model(use_fixed_path=True, fixed_path=fixed_grind_model_path)
         grind_scaler = load_scaler(use_fixed_path=True, fixed_path=fixed_grind_scaler_path)
         volume_model = load_model(use_fixed_path=True, fixed_path=fixed_volume_model_path)
         volume_scaler = load_scaler(use_fixed_path=True, fixed_path=fixed_volume_scaler_path)
+        mrr_model = load_model(use_fixed_path=True, fixed_path=fixed_mrr_model_path)
+        mrr_scaler = load_scaler(use_fixed_path=True, fixed_path=fixed_mrr_scaler_path)
     else:
         # Load model and scaler using file dialogs
         grind_model = load_model(use_fixed_path=False)
         grind_scaler = load_scaler(use_fixed_path=False)
         volume_model = load_model(use_fixed_path=False)
         volume_scaler = load_scaler(use_fixed_path=False)
+        mrr_model = load_model(use_fixed_path=False)
+        mrr_scaler = load_scaler(use_fixed_path=False)
 
     #read current belt's 'initial wear', 'removed_volume', 'RPM' and predict 'Force' and 'grind_time'
     initial_wear = 1000000           
-    target_volume = 10      # in mm^3
-    avg_rpm = 10000
+    target_volume = 300     # in mm^3
+    avg_rpm = 9000
 
     # Create a DataFrame to store the input data
     input_grind_data_dict = {
@@ -196,18 +214,23 @@ def main():
     print(f"Predicted Force: {predicted_force} N, Predicted Grind Time: {predicted_grind_time}s")
 
 
-    # TODO add decision rule: for low volume use the current model, for high volume can scale volume lost with time
-    # TODO use predicted force and time to input into volume_model_svr which predict volume_lost
-    # Predict volume
-    predicted_volume = predict_volume(volume_model, volume_scaler, initial_wear, avg_rpm, predicted_force, predicted_grind_time)
-    print(f"RPM: {avg_rpm}, Force: {predicted_force}N, Grind Time: {predicted_grind_time} sec --> Predicted Removed Volume: {predicted_volume[0]}")
-
-    # TODO adjust force and time for good grind and accurate volume with volume model
-    adjusted_force, predicted_volume = adjust_force_with_volume_model(volume_model, volume_scaler, initial_wear, avg_rpm, predicted_grind_time, predicted_force, predicted_volume, target_volume)
-    #print(f"RPM: {avg_rpm}, Force: {adjusted_force}N, Grind Time: {predicted_grind_time} sec --> Predicted Removed Volume: {predicted_volume[0]}")
-
-    adjusted_time, predicted_volume = adjust_time_with_volume_model(volume_model, volume_scaler, initial_wear, avg_rpm, predicted_grind_time, adjusted_force, predicted_volume, target_volume)
-    #print(f"RPM: {avg_rpm}, Force: {predicted_force}N, Grind Time: {adjusted_time} sec --> Predicted Removed Volume: {predicted_volume[0]}")
+    #Decision rule: for low volume use the grind model + volume model,
+    #               for high volume use MRR model, maximum force at specified RPM (belt not stuck), calculate time to reach target_volume
+    if target_volume < 130:
+        # Predict volume_lost with volume model. Input force time
+        predicted_volume = predict_volume(volume_model, volume_scaler, initial_wear, avg_rpm, predicted_force, predicted_grind_time)
+        print(f"RPM: {avg_rpm}, Force: {predicted_force}N, Grind Time: {predicted_grind_time} sec --> Predicted Removed Volume: {predicted_volume[0]}")
+        
+        # Adjust force and time for good grind and accurate volume with volume model
+        adjusted_force, predicted_volume = adjust_force_with_volume_model(volume_model, volume_scaler, initial_wear, avg_rpm, predicted_grind_time, predicted_force, predicted_volume, target_volume)
+        adjusted_time, predicted_volume = adjust_time_with_volume_model(volume_model, volume_scaler, initial_wear, avg_rpm, predicted_grind_time, adjusted_force, predicted_volume, target_volume)
+        
+    else:
+        # Predict mrr with mrr model. Input max force and time
+        max_force = 9.0
+        predicted_mrr = predict_mrr(mrr_model, mrr_scaler, initial_wear, avg_rpm, max_force)
+        predicted_grind_time = target_volume / predicted_mrr
+        print(f"Predicted MRR: {predicted_mrr} mm^3/s, Predicted Force: {max_force} N, Predicted Grind Time: {predicted_grind_time}s")
 
 
 
