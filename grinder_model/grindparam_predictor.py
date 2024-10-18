@@ -173,7 +173,8 @@ def main():
         fixed_volume_scaler_path = pathlib.Path.cwd() / 'src/grinder_model/saved_models/volume_scaler_svr_V1.pkl'
         fixed_mrr_model_path = pathlib.Path.cwd() / 'src/grinder_model/saved_models/mrr_model_svr_V1.pkl'
         fixed_mrr_scaler_path = pathlib.Path.cwd() / 'src/grinder_model/saved_models/mrr_scaler_svr_V1.pkl'
-        
+        fixed_rpm_correction_model_path = pathlib.Path.cwd() / 'src/grinder_model/saved_models/rpm_correction_model_svr_V1.pkl'
+        fixed_rpm_correction_scaler_path = pathlib.Path.cwd() / 'src/grinder_model/saved_models/rpm_correction_scaler_svr_V1.pkl'
 
         grind_model = load_model(use_fixed_path=True, fixed_path=fixed_grind_model_path)
         grind_scaler = load_scaler(use_fixed_path=True, fixed_path=fixed_grind_scaler_path)
@@ -181,6 +182,8 @@ def main():
         volume_scaler = load_scaler(use_fixed_path=True, fixed_path=fixed_volume_scaler_path)
         mrr_model = load_model(use_fixed_path=True, fixed_path=fixed_mrr_model_path)
         mrr_scaler = load_scaler(use_fixed_path=True, fixed_path=fixed_mrr_scaler_path)
+        rpm_correction_model = load_model(use_fixed_path=True, fixed_path=fixed_rpm_correction_model_path)
+        rpm_correction_scaler = load_model(use_fixed_path=True, fixed_path=fixed_rpm_correction_scaler_path)
     else:
         # Load model and scaler using file dialogs
         grind_model = load_model(use_fixed_path=False)
@@ -189,11 +192,13 @@ def main():
         volume_scaler = load_scaler(use_fixed_path=False)
         mrr_model = load_model(use_fixed_path=False)
         mrr_scaler = load_scaler(use_fixed_path=False)
+        rpm_correction_model = load_model(use_fixed_path=False)
+        rpm_correction_scaler = load_model(use_fixed_path=False)
 
     #read current belt's 'initial wear', 'removed_volume', 'RPM' and predict 'Force' and 'grind_time'
     initial_wear = 1000000           
-    target_volume = 300     # in mm^3
-    avg_rpm = 9000
+    target_volume = 100     # in mm^3
+    avg_rpm = 11000
 
     # Create a DataFrame to store the input data
     input_grind_data_dict = {

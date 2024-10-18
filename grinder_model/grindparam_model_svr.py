@@ -182,7 +182,7 @@ def main():
     grind_data = grind_data[pd.isna(grind_data['failure_msg'])]
 
     #drop unrelated columns
-    related_columns = [ 'grind_time', 'avg_rpm', 'avg_force', 'initial_wear', 'removed_material']
+    related_columns = ['grind_time', 'avg_rpm', 'avg_force', 'initial_wear', 'removed_material', 'rpm_setpoint']
     grind_data = grind_data[related_columns]
 
     

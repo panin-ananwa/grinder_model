@@ -116,7 +116,7 @@ def open_file_dialog():
 
 def save_model(model, scaler, folder_name='saved_models', modelname='svr_model.pkl', scalername='scaler.pkl'):
     # Get the current working directory
-    current_dir = pathlib.Path.cwd() / 'src' / 'grinder_model'
+    current_dir = pathlib.Path.cwd() / 'src' / 'grinder_model' 
 
     # Create the full path by joining the current directory with the folder name
     folder_path = os.path.join(current_dir, folder_name)
@@ -136,7 +136,7 @@ def save_model(model, scaler, folder_name='saved_models', modelname='svr_model.p
 
 def load_model(folder_name='saved_models', filename='svr_model.pkl'):
     # Get the current working directory
-    current_dir = pathlib.Path.cwd() / 'src' / 'grinder_model'
+    current_dir = pathlib.Path.cwd() / 'src' / 'grinder_model' 
 
     # Create the full path by joining the current directory with the folder name
     folder_path = os.path.join(current_dir, folder_name)
@@ -159,7 +159,7 @@ def main():
 
     grind_data = load_data(file_path)
 
-    '''
+    
     #add data from another file
     another_file_path = open_file_dialog()
     if not another_file_path:
@@ -168,16 +168,12 @@ def main():
         additional_data = load_data(another_file_path)
         # Assuming you're concatenating rows or merging based on a common column
         grind_data = pd.concat([grind_data, additional_data], ignore_index=True)
-    '''
-    # Delete rows where removed_material is less than 50
-    grind_data = grind_data[grind_data['removed_material'] >= 50]
+    
+    # Delete rows where removed_material is less than 12
+    grind_data = grind_data[grind_data['removed_material'] >= 5]
 
     # Filter out points which have mad of more than 1000
     grind_data = grind_data[grind_data['mad_rpm'] <= 1000]
-
-    # Filter out avg force that is lower than 7
-    grind_data = grind_data[grind_data['force_setpoint'] >= 6.9]
-    grind_data = grind_data[grind_data['rpm_setpoint'] > 8400]
 
     # Filter out avg rpm that is lower than half of rpm_setpoint
     grind_data = grind_data[grind_data['avg_rpm'] >= grind_data['rpm_setpoint'] / 2]
@@ -185,17 +181,14 @@ def main():
     grind_data = grind_data[pd.isna(grind_data['failure_msg'])]
 
     #drop unrelated columns
-    related_columns = [ 'grind_time', 'avg_rpm', 'avg_force', 'initial_wear', 'removed_material']
-    grind_data = grind_data[related_columns]
-    grind_data['material_removal_rate'] = grind_data['removed_material'] / grind_data['grind_time']
-
-    # Update the related columns to include 'material_removal_rate' instead of 'grind_time' and 'removed_material'
-    related_columns = ['avg_rpm', 'avg_force', 'initial_wear', 'material_removal_rate']
+    #related_columns = [ 'grind_time', 'avg_rpm', 'avg_force', 'initial_wear', 'removed_material', 'rpm_setpoint']
+    related_columns = ['avg_rpm', 'avg_force', 'rpm_setpoint']
     grind_data = grind_data[related_columns]
 
+    
 
     #desired output
-    target_columns = ['material_removal_rate']
+    target_columns = ['avg_rpm']
 
     # Preprocess the data (train the model using the CSV data, for example)
     X_train, X_test, y_train, y_test, scaler = preprocess_data(grind_data, target_columns)
@@ -209,9 +202,7 @@ def main():
     evaluate_model(best_model, X_test, y_test)
  
     #save model
-    save_model(best_model, scaler, folder_name='saved_models', modelname='mrr_model_svr_V1.pkl', scalername='mrr_scaler_svr_V1.pkl')
-
-
+    save_model(best_model, scaler, folder_name='saved_models', modelname='rpm_correction_model_svr_V1.pkl', scalername='rpm_correction_scaler_svr_V1.pkl')
 
 if __name__ == "__main__":
     main()
