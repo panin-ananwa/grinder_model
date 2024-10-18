@@ -11,6 +11,7 @@ from tkinter import filedialog
 from sklearn.model_selection import GridSearchCV
 import os
 import joblib
+import pathlib
 
 def load_data(file_path):
     #Load dataset from a CSV file.
@@ -115,7 +116,7 @@ def open_file_dialog():
 
 def save_model(model, scaler, folder_name='saved_models', modelname='svr_model.pkl', scalername='scaler.pkl'):
     # Get the current working directory
-    current_dir = os.getcwd()
+    current_dir = pathlib.Path.cwd() / 'src' / 'grinder_model' 
 
     # Create the full path by joining the current directory with the folder name
     folder_path = os.path.join(current_dir, folder_name)
@@ -135,7 +136,7 @@ def save_model(model, scaler, folder_name='saved_models', modelname='svr_model.p
 
 def load_model(folder_name='saved_models', filename='svr_model.pkl'):
     # Get the current working directory
-    current_dir = os.getcwd()
+    current_dir = pathlib.Path.cwd() / 'src' / 'grinder_model' 
 
     # Create the full path by joining the current directory with the folder name
     folder_path = os.path.join(current_dir, folder_name)

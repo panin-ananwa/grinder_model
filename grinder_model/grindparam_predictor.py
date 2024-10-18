@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import filedialog
 import os
 import joblib
+import pathlib
 
 def load_model(use_fixed_path=False, fixed_path='saved_models/svr_model.pkl'):
     if use_fixed_path:
@@ -166,13 +167,14 @@ def main():
     
     if use_fixed_model_path:
         # Specify the fixed model and scaler paths
-        fixed_grind_model_path = 'saved_models/grindparam_model_rf_V1.pkl'
-        fixed_grind_scaler_path = 'saved_models/grindparam_scaler_rf_V1.pkl'
-        fixed_volume_model_path = 'saved_models/volume_model_svr_V1.pkl'
-        fixed_volume_scaler_path = 'saved_models/volume_scaler_svr_V1.pkl'
-        fixed_mrr_model_path = 'saved_models/mrr_model_svr_V1.pkl'
-        fixed_mrr_scaler_path = 'saved_models/mrr_scaler_svr_V1.pkl'
+        fixed_grind_model_path = pathlib.Path.cwd() / 'src/grinder_model/saved_models/grindparam_model_rf_V1.pkl'
+        fixed_grind_scaler_path = pathlib.Path.cwd() / 'src/grinder_model/saved_models/grindparam_scaler_rf_V1.pkl'
+        fixed_volume_model_path = pathlib.Path.cwd() / 'src/grinder_model/saved_models/volume_model_svr_V1.pkl'
+        fixed_volume_scaler_path = pathlib.Path.cwd() / 'src/grinder_model/saved_models/volume_scaler_svr_V1.pkl'
+        fixed_mrr_model_path = pathlib.Path.cwd() / 'src/grinder_model/saved_models/mrr_model_svr_V1.pkl'
+        fixed_mrr_scaler_path = pathlib.Path.cwd() / 'src/grinder_model/saved_models/mrr_scaler_svr_V1.pkl'
         
+
         grind_model = load_model(use_fixed_path=True, fixed_path=fixed_grind_model_path)
         grind_scaler = load_scaler(use_fixed_path=True, fixed_path=fixed_grind_scaler_path)
         volume_model = load_model(use_fixed_path=True, fixed_path=fixed_volume_model_path)
