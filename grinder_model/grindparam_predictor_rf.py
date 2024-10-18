@@ -154,8 +154,8 @@ def main():
     
     if use_fixed_model_path:
         # Specify the fixed model and scaler paths
-        fixed_grind_model_path = 'saved_models/grindparam_model_svr_V1.pkl'
-        fixed_grind_scaler_path = 'saved_models/grindparam_scaler_svr_V1.pkl'
+        fixed_grind_model_path = 'saved_models/grindparam_model_rf_V1.pkl'
+        fixed_grind_scaler_path = 'saved_models/grindparam_scaler_rf_V1.pkl'
         fixed_volume_model_path = 'saved_models/volume_model_svr_V1.pkl'
         fixed_volume_scaler_path = 'saved_models/volume_scaler_svr_V1.pkl'
         
@@ -172,7 +172,7 @@ def main():
 
     #read current belt's 'initial wear', 'removed_volume', 'RPM' and predict 'Force' and 'grind_time'
     initial_wear = 1000000           
-    target_volume = 10      # in mm^3
+    target_volume = 100     # in mm^3
     avg_rpm = 10000
 
     # Create a DataFrame to store the input data
